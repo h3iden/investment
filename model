@@ -1,0 +1,46 @@
+r = taxa de retorno
+
+investimento em tempo t-1 com término em t, retorno:
+	r_t = (c_t - c_t-1) / c_t-1
+c_t é a cotação do investimento no tempo t
+
+
+MARKOWITZ
+
+x_j = proporção do capital investido no ativo j
+gera a restrição:
+	 n
+	sum x_j = 1
+	j=1
+ou seja, todo o capital deve ser investido na carteira
+
+R_j = variável aleatória para modelar o retorno do ativo j
+u_j = E(R_j), média da variável R
+	E(R_j) é o retorno esperado do ativo j
+
+para calcular E, precisamos conhecer todos os T cenários de j, ou seja, precisamos da cotação de j para cada tempo t = 1..T e sua probabilidade p_t de acontecer
+
+		  T
+note que sum p_t = 1
+		 t=1
+
+em cada cenário t, o valor de R_j assume um valor r_jt, assim podemos determinar o valor esperado do retorno de j (u_j) para o período t = [1, T]
+
+	   T
+u_j = sum p_t * r_jt
+	  t=1
+
+na prática, valores r_jt correspondem à série histórica do ativo j (os dados que pegaremos no site) e as probabilidades p_t são iguais para cada t, p_t = 1/T
+
+então, valor esperado do retorno do ativo j é:
+
+	   1	 T
+u_j = --- * sum (r_jt - r_jt-1)
+	  T-1   t=2
+
+dito isso, o retorno do portfólio X é dado por:
+
+		n
+u(X) = sum (u_j * x_j)
+	   j=1
+
