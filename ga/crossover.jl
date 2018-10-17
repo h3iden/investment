@@ -34,7 +34,7 @@ function two_point_crossover(solver::ga, selected)
 	end
 end
 
-function blx(solver::ga, selected)
+function blx(solver::ga, selected, capital)
 	α = 0.5 # standard
 	for s in selected
 		ia, ib = solver.population[s[1]], solver.population[s[2]]
@@ -43,8 +43,8 @@ function blx(solver::ga, selected)
 			oa, ob = [], []
 			for i in 1:length(ia)
 				Δ = abs(ia[i] - ib[i])
-				lb = max(solver.lb, min(ia[i], ib[i]) - α*Δ)
-				ub = min(solver.ub, max(ia[i], ib[i]) + α*Δ)
+				lb = max(0, min(ia[i], ib[i]) - α*Δ)
+				ub = min(capital, max(ia[i], ib[i]) + α*Δ)
 				if Δ != 0 
 					d = Uniform(lb, ub)
 					x, y = rand(d), rand(d)

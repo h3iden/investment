@@ -8,8 +8,9 @@ function tourney(solver::ga, x)
 		candidates = [(solver.fitness[i], i) for i in picks]
 		sort!(candidates)
 		# if min
-		s = Pair(candidates[1][2], candidates[2][2])
-		# else s = Pair(candidates[length(candidates) - 1][2], candidates[length(candidates)][2])
+		# s = Pair(candidates[1][2], candidates[2][2])
+		# else 
+		s = Pair(candidates[length(candidates) - 1][2], candidates[length(candidates)][2])
 		push!(selected, s)
 	end
 	return selected

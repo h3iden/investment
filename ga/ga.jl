@@ -15,19 +15,18 @@ function params(solver::ga)
 	println("Total fitness: ", solver.total_fitness)
 end
 
-function every_fitness(solver::ga)
+function every_fitness(solver::ga, μ, R)
 	for ind in solver.population
-		f = feetness(ind)
+		f = feetness(ind, μ, R)
 		solver.total_fitness += f
 		append!(solver.fitness, f)
-		if f < solver.elitist[2]
+		if f > solver.elitist[2]
 			solver.elitist = Pair(ind, f)
 		end
 	end
 end
 
 function feetness(ind, μ, R)
-	println(ind)
     fit = 0.0
     ret = 0.0
     for i in 1:length(ind)
@@ -81,14 +80,13 @@ println("T: ", T)
 println("μ: ", μ)
 println("R: ", R)
 
-println(feetness(solver.population[1], μ, R))
-
-# for i in 1:1000
-# 	every_fitness(solver)
-# 	selection = tourney(solver, 2)
-# 	blx(solver, selection)
-# 	gaussian(solver)
-# 	reset_aux(solver)
-# 	println(i, " ", solver.elitist[2])	
-# end
-# println(solver.elitist)
+for i in 1:10
+	every_fitness(solver, μ, R)
+	selection = tourney(solver, 2)
+	blx(solver, selection, capital)
+	mut(solver)
+	reset_aux(solver)
+	println(i, " ", solver.elitist[2])	
+	println(solver.population)
+end
+println(solver.elitist)
