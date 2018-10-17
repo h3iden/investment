@@ -17,7 +17,7 @@ end
 
 function every_fitness(solver::ga)
 	for ind in solver.population
-		f = portfolio_variance(ind)
+		f = feetness(ind)
 		solver.total_fitness += f
 		append!(solver.fitness, f)
 		if f < solver.elitist[2]
@@ -26,17 +26,22 @@ function every_fitness(solver::ga)
 	end
 end
 
-function portfolio_variance(ind)
-    acc = 0.0
-    for i in 1:length(x)
-    	for j in 1:length(x)
+function feetness(ind, μ, R)
+	println(ind)
+    fit = 0.0
+    ret = 0.0
+    for i in 1:length(ind)
+    	for j in 1:length(ind)
 	    	if i != j
+	    		# portfolio variance
 	    		σij = asset_pair_variance(R[i], μ[i], R[j], μ[j])
-	    		acc += (σij * ind[i] * ind[j])
+	    		fit += (σij * ind[i] * ind[j])
 	    	end
     	end
+    	# expected portfolio return
+	    ret += ind[i] * μ[i]
     end
-    return acc
+    return ret - fit # maximize ret, minimize fit
 end
 
 function random_solve(n, total)
@@ -72,6 +77,12 @@ pp = [random_solve(assets, capital) for x in 1:pop_sz]
 solver = ga(cx, mr, pp)
 
 params(solver)
+println("T: ", T)
+println("μ: ", μ)
+println("R: ", R)
+
+println(feetness(solver.population[1], μ, R))
+
 # for i in 1:1000
 # 	every_fitness(solver)
 # 	selection = tourney(solver, 2)
