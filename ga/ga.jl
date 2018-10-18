@@ -83,7 +83,7 @@ println("R: ", R)
 for i in 1:10
 	every_fitness(solver, μ, R)
 	selection = tourney(solver, 2)
-	blx(solver, selection, capital)
+	arithmetic(solver, selection)
 	mut(solver)
 	reset_aux(solver)
 	println(i, " ", solver.elitist[2])	

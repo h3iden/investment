@@ -60,3 +60,22 @@ function blx(solver::ga, selected, capital)
 		push!(solver.next_population, oa), push!(solver.next_population, ob)
 	end
 end
+
+function arithmetic(solver::ga, selected)
+    rng = MersenneTwisters.MT19937()
+    for s in selected
+    	ia, ib = solver.population[s[1]], solver.population[s[2]]
+		ω = rand()
+		if ω < solver.cx
+			oa, ob = [0.0 for x in 1:length(ia)], [0.0 for x in 1:length(ib)]
+			α = rand()
+			for i in 1:length(ia)
+				oa[i] = α * ia[i] + (1 - α) * ib[i]
+				ob[i] = (1 - α) * ia[i] + α * ib[i]
+			end
+		else
+			oa, ob = ia, ib
+		end
+		push!(solver.next_population, oa), push!(solver.next_population, ob)
+    end
+end
