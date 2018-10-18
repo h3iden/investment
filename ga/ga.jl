@@ -44,15 +44,9 @@ function feetness(ind, μ, R)
 end
 
 function random_solve(n, total)
-	x = [0 for x in 1:n]
-    rng = MersenneTwisters.MT19937()
-    while total > 0
-    	aux = rand(rng, 0:total)
-    	idx = rand(rng, 1:n)
-    	x[idx] += aux
-    	total -= aux
-    end
-    return x
+	rng = MersenneTwisters.MT19937()
+	x = rand(0:total, n)
+    return x / sum(x) * total
 end
 
 function scan(file)
