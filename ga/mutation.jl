@@ -43,9 +43,12 @@ function mut(solver::ga)
 			ω = rand()
 			x = rand(1:length(ind))
 			if ω < solver.mr
-				pert = rand(d)
-				ind[i] += pert
-				ind[x] -= pert
+				pert = rand(d) / 100
+				if (ind[i] + pert <= 1.0 && ind[i] + pert >= 0.0 && ind[i] - pert <= 1.0 && ind[i] - pert >= 0.0
+				&& ind[x] + pert <= 1.0 && ind[x] + pert >= 0.0 && ind[x] - pert <= 1.0 && ind[x] - pert >= 0.0)
+					ind[i] += pert
+					ind[x] -= pert
+				end
 			end
 		end
 		# clamp!(ind, solver.lb, solver.ub)
