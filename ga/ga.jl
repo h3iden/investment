@@ -64,19 +64,28 @@ function reset_aux(solver::ga)
 end
 
 function gambiarra(ind, μ, σ)
-    var = 0.0
-    ret = 0.0
+    v, r = 0.0, 0.0
     for i in 1:length(ind)
     	for j in i:length(ind)
-	    	# portfolio variance
-	    	# σij = asset_pair_variance(R[i], μ[i], R[j], μ[j])
-	    	# println(i, " ", j, " ", σij)
-	    	var += (σ[i][j] * ind[i] * ind[j])
+	    	v += (σ[i][j] * ind[i] * ind[j])
     	end
-    	# expected portfolio return
-	    ret += ind[i] * μ[i]
+    	r += ind[i] * μ[i]
     end
-    println(ret, " ", var)
+    return v, r
+end
+
+function ef(v, r)
+	marks = [0 for i in 1:length(v)]
+	for i in 1:length(v)
+		for j in 1:length(r)
+			if v[j] < v[i]
+				if r[j] > r[i]
+					marks[i] = 1
+				end
+			end
+		end
+	end
+	return marks
 end
 
 file = "params.in"
@@ -101,12 +110,22 @@ for i in 1:it
 	arithmetic(solver, selection)
 	mut(solver)
 	reset_aux(solver)
-	println(i, " ", solver.elitist[2])	
+	# println(i, " ", solver.elitist[2])	
 end
 
-# for ind in solver.population
-# 	gambiarra(ind, μ, σ)
-# end
+vars, rets = [], []
+for ind in solver.population
+	v, r = gambiarra(ind, μ, σ)
+	push!(vars, v)
+	push!(rets, r)
+end
+
+marks = ef(vars, rets)
+for i in 1:length(marks)
+	if marks[i] == 0
+		println(rets[i], " ", vars[i])
+	end
+end
 
 # println(solver.elitist)
 
