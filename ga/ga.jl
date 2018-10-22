@@ -54,7 +54,7 @@ end
 
 function scan(file)
 	lines = readlines(file)
-	return tryparse(Int32, lines[1]), tryparse(Float64, lines[2]), tryparse(Float64, lines[3])
+	return tryparse(Int32, lines[1]), tryparse(Int32, lines[2]), tryparse(Float64, lines[3]), tryparse(Float64, lines[4])
 end
 
 function reset_aux(solver::ga)
@@ -80,7 +80,7 @@ function gambiarra(ind, μ, σ)
 end
 
 file = "params.in"
-pop_sz, cx, mr = scan(file)
+it, pop_sz, cx, mr = scan(file)
 # T, μ, R = markowicz_params()
 T, μ, σ = markowicz_params()
 assets = length(T)
@@ -94,19 +94,19 @@ solver = ga(cx, mr, pp)
 # println("μ: ", μ)
 # println("R: ", R)
 
-for i in 1:1000
+for i in 1:it
 	# every_fitness(solver, μ, R)
 	every_fitness(solver, μ, σ)
 	selection = tourney(solver, 2)
 	arithmetic(solver, selection)
 	mut(solver)
 	reset_aux(solver)
-	# println(i, " ", solver.elitist[2])	
+	println(i, " ", solver.elitist[2])	
 end
 
-for ind in solver.population
-	gambiarra(ind, μ, σ)
-end
+# for ind in solver.population
+# 	gambiarra(ind, μ, σ)
+# end
 
 # println(solver.elitist)
 
