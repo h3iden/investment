@@ -12,7 +12,7 @@ function ef(v, r)
 	return marks
 end
 
-file = "lol"
+file = "out"
 lines = readlines(file)
 vars, rets = [], []
 for i in 1:length(lines)
