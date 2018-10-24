@@ -23,27 +23,33 @@ function dominates(p, q)
 end
 
 function nds(points)
-    pl = []
-    push!(pl, points[1])
-    for i in 2:length(points)
-    	p = points[i]
-    	pushfirst!(pl, p)
-    	remove_these = []
-    	for j in 2:length(pl)
-    		q = pl[j]
-    		if dominates(p, q)
-    			insert_and_dedup!(remove_these, j)
-    			# splice!(pl, j) # remove jth element (which is q) from pl
-    		else
-    			if dominates(q, p)
-    				insert_and_dedup!(remove_these, 1)
-    				# splice!(pl, 1) # remove 1st element (which is p) from pl
-    			end
-    		end
-    	end
-    	deleteat!(pl, remove_these)
-    end
-    return pl
+    frontiers = []
+    while !isempty(points)
+		pl = []
+    	push!(pl, points[1])
+        # for i in 2:length(points)
+	    	# p = points[i]
+	    for p in points[2:end]
+	    	pushfirst!(pl, p)
+	    	remove_these = []
+	    	for j in 2:length(pl)
+	    		q = pl[j]
+	    		if dominates(p, q)
+	    			insert_and_dedup!(remove_these, j)
+	    			# splice!(pl, j) # remove jth element (which is q) from pl
+	    		else
+	    			if dominates(q, p)
+	    				insert_and_dedup!(remove_these, 1)
+	    				# splice!(pl, 1) # remove 1st element (which is p) from pl
+	    			end
+	    		end
+	    	end
+	    	deleteat!(pl, remove_these)
+	    end
+	    push!(frontiers, pl)
+	    filter!(x -> x ∉ pl, points)
+	end
+    return frontiers
 end
 
 file = "out"
@@ -56,10 +62,21 @@ for i in 1:length(lines)
 	push!(points, (v, r))
 end
 
-pts = nds(points)
-for i in 1:length(pts)
-	println(pts[i][1], " ", pts[i][2])
+function data(frontiers)
+	cont = 1
+	for points in frontiers
+		file = "ef" * string(cont)
+		open(file, "w") do f
+			for point in points
+				write(f, string(point[1]) * " " * string(point[2]) * "\n")
+			end
+		end
+		cont += 1
+	end
 end
+
+f = nds(points)
+data(f)
 
 # marks = ef(points)
 # for i in 1:length(marks)
