@@ -28,22 +28,88 @@ function every_fitness(solver::ga, μ, σ)
 end
 
 # function feetness(ind, μ, R)
+function ef(points)
+	marks = [0 for i in 1:length(points)]
+	for i in 1:length(points)
+		for j in 1:length(points)
+			if v[j][1] < v[i][1]
+				if r[j][2] > r[i][2]
+					marks[i] = 1
+				end
+			end
+		end
+	end
+	return marks
+end
+
+insert_and_dedup!(v::Vector, x) = (splice!(v, searchsorted(v,x), [x]); v)
+
+function dominates(p, q)
+    if p[1] < q[1] && p[2] > q[2]
+    	return true
+    else
+    	return false
+    end
+end
+
+function nds(points)
+    frontiers = []
+    while !isempty(points)
+		pl = []
+    	push!(pl, points[1])
+        # for i in 2:length(points)
+	    	# p = points[i]
+	    for p in points[2:end]
+	    	pushfirst!(pl, p)
+	    	remove_these = []
+	    	for j in 2:length(pl)
+	    		q = pl[j]
+	    		if dominates(p, q)
+	    			insert_and_dedup!(remove_these, j)
+	    			# splice!(pl, j) # remove jth element (which is q) from pl
+	    		else
+	    			if dominates(q, p)
+	    				insert_and_dedup!(remove_these, 1)
+	    				# splice!(pl, 1) # remove 1st element (which is p) from pl
+	    			end
+	    		end
+	    	end
+	    	deleteat!(pl, remove_these)
+	    end
+	    push!(frontiers, pl)
+	    filter!(x -> x ∉ pl, points)
+	end
+    return frontiers
+end
+
 function feetness(ind, μ, σ)
-    var = 0.0
-    ret = 0.0
+    var, ret = 0.0, 0.0
     for i in 1:length(ind)
     	for j in i:length(ind)
-	    	# portfolio variance
-	    	# σij = asset_pair_variance(R[i], μ[i], R[j], μ[j])
-	    	# println(i, " ", j, " ", σij)
-	    	var += (σ[i][j] * ind[i] * ind[j])
+	    	var += σ[i][j] * ind[i] * ind[j]
     	end
     	# expected portfolio return
 	    ret += ind[i] * μ[i]
     end
-    # println(ret, " ", var, " ", ret-var)
-    return ret - var # maximize ret, minimize var
+    return var, ret
 end
+
+# function feetness(ind, μ, σ)
+#     var = 0.0
+#     ret = 0.0
+#     for i in 1:length(ind)
+#     	for j in i:length(ind)
+# 	    	# portfolio variance
+# 	    	# σij = asset_pair_variance(R[i], μ[i], R[j], μ[j])
+# 	    	# println(i, " ", j, " ", σij)
+# 	    	var += (σ[i][j] * ind[i] * ind[j])
+#     	end
+#     	# expected portfolio return
+# 	    ret += ind[i] * μ[i]
+#     end
+#     # println(ret, " ", var, " ", ret-var)
+#     return ret - var # maximize ret, minimize var
+# end
 
 function random_solve(n)
 	rng = MersenneTwisters.MT19937()
