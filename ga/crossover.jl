@@ -76,6 +76,6 @@ function arithmetic(solver::ga, selected)
 		else
 			oa, ob = ia, ib
 		end
-		push!(solver.next_population, oa), push!(solver.next_population, ob)
+		push!(solver.population, oa), push!(solver.population, ob)
     end
 end

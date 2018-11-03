@@ -38,7 +38,7 @@ end
 
 function mut4nsga(solver::ga)
 	d = Normal(0.0, 1.0) # Normal(μ = 0.0, σ = 0.5), σ = 1.0 also works
-	for ind in solver.next_population
+	for ind in solver.population
 		for i in 1:length(ind)
 			ω = rand()
 			x = rand(1:length(ind))

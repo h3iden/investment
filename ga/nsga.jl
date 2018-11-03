@@ -18,15 +18,16 @@ end
 # function every_fitness(solver::ga, μ, R)
 function every_fitness(solver::ga, μ, σ)
 	points = []
+	solver.fitness = []
 	if solver.next_population == []
 		merged = solver.population
 	else
 		merged = [solver.population; solver.next_population]
 	end
 	for ind in merged
-		ret, var = feetness(ind, μ, σ)
-		push!(points, (ret, var))
-		push!(solver.fitness, (ret, var))
+		var, ret = feetness(ind, μ, σ)
+		push!(points, (var, ret))
+		push!(solver.fitness, (var, ret))
 	end
 	frontiers, indexes = nds(points)
 	return frontiers, indexes
@@ -35,7 +36,7 @@ end
 insert_and_dedup!(v::Vector, x) = (splice!(v, searchsorted(v,x), [x]); v)
 
 function dominates(p, q)
-    if p[1] < q[1] && p[2] > q[2]
+    if p[1] < q[1] && p[2] > q[2] # (var, ret)
     	return true
     else
     	return false
@@ -135,7 +136,7 @@ function ef(v, r)
 	return marks
 end
 
-function filter_by_distance(fitness, indexes, n, old_population)
+function filter_by_distance(fitness, indexes, n)
     if n == 1
     	return [indexes[1]]
    	elseif n == 2
@@ -189,17 +190,19 @@ function filter_population(solver::ga, frontiers, indexes, pop_sz)
 			end
 		else # number will exceed, include the n points with biggest distance
 			println("pop has ", length(solver.population), " frontier has ", length(is))
-			selected = filter_by_distance(solver.fitness, is, pop_sz, old_population)
-			append!(solver.population, selected)
+			selected = filter_by_distance(solver.fitness, is, pop_sz)
+			for s in selected
+				push!(solver.population, old_population[s])
+			end
 			return
 		end
 	end
 end
 
-function data(frontiers, i)
+function data(frontiers)
 	cont = 1
 	for points in frontiers
-		file = "plots/plots" * string(i) * "/ef" * string(cont)
+		file = "test/ef" * string(cont)
 		open(file, "w") do f
 			for point in points
 				write(f, string(point[1]) * " " * string(point[2]) * "\n")
@@ -222,30 +225,78 @@ solver = ga(cx, mr, pp)
 for i in 1:it
 	println(i)
 
-	# every_fitness(solver, μ, R)
-	frontiers, indexes = every_fitness(solver, μ, σ)
-	
-	# filter_population(solver, frontiers, indexes, pop_sz)
-	
-	# solver.next_population = []
+	# tested everything, one step at a time - fixed?
 
+	# frontiers, indexes = every_fitness(solver, μ, σ)
+	# for i in 1:length(solver.population)
+	# 	println(solver.fitness[i])
+	# end
+	# println(indexes)
+	# selection = tourney4nsga(solver, 2, frontiers, indexes)
+	# println(selection)
+	
+	# arithmetic(solver, selection)
+	# frontiers, indexes = every_fitness(solver, μ, σ)
+	# for i in 1:length(solver.population)
+	# 	println(solver.fitness[i])
+	# end
+	# println(indexes)
+	# # REIMPLANTAR ELITISMO E VER NO QUE DÁ!!
+
+	# mut4nsga(solver)
+	# frontiers, indexes = every_fitness(solver, μ, σ)
+	# for i in 1:length(solver.population)
+	# 	println(solver.fitness[i])
+	# end
+	# println(length(solver.fitness))
+	# println(indexes)
+
+	# filter_population(solver, frontiers, indexes, pop_sz)
+	# frontiers, indexes = every_fitness(solver, μ, σ)
+	# for i in 1:length(solver.population)
+	# 	println(solver.fitness[i])
+	# end
+	# println(length(solver.fitness))
+	# println(indexes)
+
+	# for ind in solver.population
+	# 	println(ind)
+	# end
+	# println(length(solver.population))
+
+	# frontiers, indexes = every_fitness(solver, μ, σ)
+	# println(length(solver.fitness))
+	# println(length(solver.population))
+	# selection = tourney4nsga(solver, 2, frontiers, indexes)
+	# println(length(solver.fitness))
+	# println(length(solver.population))
+	# arithmetic(solver, selection)
+	# println(length(solver.fitness))
+	# println(length(solver.population))
+	# mut4nsga(solver)
+	# println(length(solver.fitness))
+	# println(length(solver.population))
+	# frontiers, indexes = every_fitness(solver, μ, σ)
+	# println(length(solver.fitness))
+	# println(length(solver.population))
+	# filter_population(solver, frontiers, indexes, pop_sz)
+
+	# frontiers, indexes = every_fitness(solver, μ, σ)
+	# println(length(solver.fitness))
+	# # println(length(solver.population))
+
+	# do this
+	frontiers, indexes = every_fitness(solver, μ, σ)
 	selection = tourney4nsga(solver, 2, frontiers, indexes)
-	# println("len pop = ", length(solver.population), " len sel = ", length(selection), " len next = ", length(solver.next_population))
 	arithmetic(solver, selection)
 	mut4nsga(solver)
-	# println("len pop = ", length(solver.population))
-	
-	reset_fitness(solver)
+	frontiers, indexes = every_fitness(solver, μ, σ)
 	filter_population(solver, frontiers, indexes, pop_sz)
-	
-	solver.next_population = []
-	# println(i, " ", solver.elitist[2])	
 
-	if i % 100 == 0
-		data(frontiers, Int64(i / 100))
-	end
 end
 
+frontiers, indexes = every_fitness(solver, μ, σ)
+data(frontiers)
 
 # vars, rets = [], []
 # for ind in solver.population
