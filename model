@@ -55,3 +55,18 @@ depois manda bala
 				 n 	 n
 	sigma²(X) = sum sum sigma_ij * x_i * x_j
 				i=1 j=1
+
+
+
+CVAR - hanaoka
+
+						  n
+Fa(w, C) = C + 1/(1-a) + sum pi_j * max(f(w, rj) - C, 0)
+						 j=1
+
+w é o indivíduo (proporção de investimento no ativo)
+C é o VAR do portfólio
+a é o nível de confiança (qual usar?)
+r é o retorno do ativo no período
+j é cada ativo na carteira
+pi é a probabilidade de ocorrência do cenário (pi = 1/T para probabilidades iguais)
