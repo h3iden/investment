@@ -62,18 +62,25 @@ function markowicz_params()
 	return T, μ, σ
 end
 
-# ind -> portfolio || R -> assets' exact_return over time 1:T
-function portfolio_loss(ind, R, α) # f(X, R) = Σi=1:T Σ j=1:n -(rjt * xj)
-    loss = 0.0
-    for i in 1:length(R)
-    	for j in 1:length(R[i])
-    		loss -= (R[i][j] * ind[i] - α)
-    	end
-    end
-    return loss
+function expected_return_for_every_day(asset)
+	returns = [0 for i = 1:length(asset)]
+	returns[1] = 0 # undefined value
+	for i in 2:length(asset)
+		returns[i] = asset[i] - asset[i-1] / asset[i-1]
+	end
+	return returns[2:end]
 end
 
-# α = var()
-function cvar(ind, R, α, β)
-	α + 1 / (length(R[1]) * (1 - β)) * portfolio_loss(ind, R, α)
+function calculate_count(β, total)
+	return ceil((1 - β/100) * total)
 end
+
+# esqueleto, implementar depois
+
+asset = scan(...)
+returns = expected_return_for_every_day(asset)
+sorted_returns = sort!(returns)
+total_count = length(returns)
+idx = calculate_count(99, total_count) # returns the count that will be used for VaR / CVaR. param should be 95, 99 or 99.9
+var = sorted_returns[idx]
+cvar = (1 / idx) * sum(sorted_returns[1:idx])
