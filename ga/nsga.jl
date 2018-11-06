@@ -82,16 +82,40 @@ function nds(points)
     return frontiers, is
 end
 
-function feetness(ind, μ, σ)
-    var, ret = 0.0, 0.0
-    for i in 1:length(ind)
-    	for j in i:length(ind)
-	    	var += σ[i][j] * ind[i] * ind[j]
-    	end
-    	# expected portfolio return
-	    ret += ind[i] * μ[i]
-    end
-    return var, ret
+# risco = variância bosta
+# function feetness(ind, μ, σ)
+#     var, ret = 0.0, 0.0
+#     for i in 1:length(ind)
+#     	for j in i:length(ind)
+# 	    	var += σ[i][j] * ind[i] * ind[j]
+#     	end
+#     	# expected portfolio return
+# 	    ret += ind[i] * μ[i]
+#     end
+#     return var, ret
+# end
+
+function calculate_count(β, tc)
+	return ceil((1 - β/100) * tc)
+end
+
+function cvar(sorted_returns, β)
+    total_count = length(sorted_returns)
+    i = calculate_count(β, tc)
+    return (1 / i) * sum(sorted_returns[1:i])
+end
+
+# risco = cvar
+function feetness(ind, assets_sorted_returns, μ)
+	β = 99
+	risk, ret = 0.0, 0.0
+	for i in 1:length(ind)
+		if ind[i] > 0
+			ret += ind[i] * μ[i]
+			risk += cvar(assets_sorted_returns[i], β)
+		end
+	end
+ 	return risk, ret
 end
 
 function random_solve(n)
