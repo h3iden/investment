@@ -16,6 +16,7 @@ function params(solver::ga)
 end
 
 function calc(solver::ga, ind, μ, σ, i)
+	# println("afe")
     var, ret = feetness(ind, μ, σ)
 	solver.fitness[i] = (var, ret)
 	return (var, ret)	
@@ -34,26 +35,41 @@ function every_fitness(solver::ga, μ, σ)
 	points = [(-1.0, -1.0) for x in 1:length(merged)]
 	solver.fitness = [(-1.0, -1.0) for x in 1:length(merged)]
 
+	# https://stackoverflow.com/questions/37287020/how-and-when-to-use-async-and-sync-in-julia
+	# https://juliacomputing.com/docs/press_pdfs/linux-magazine.pdf
+
 	# Threads.@threads for ind in merged
-	@distributed for i in 1:length(merged)
+
+	# a = cell(nworkers())
+	a = [-1 for x in 1:nworkers()]
+	# @sync for i in 1:length(merged)
+	@sync for (idx, pid) in enumerate(workers())
 		# original
 		# var, ret = feetness(ind, μ, σ)
 		# push!(points, (var, ret))
 		# push!(solver.fitness, (var, ret))
 		
 		# adaptado pra threads
-		var, ret = feetness(merged[i], μ, σ)
-		points[i] = (var, ret)
-		solver.fitness[i] = (var, ret)
+		# var, ret = feetness(merged[i], μ, σ)
+		# points[i] = (var, ret)
+		# solver.fitness[i] = (var, ret)
 	
 		# adaptado pra async --nao ta funcionando
-		println("id = ", Threads.threadid(), " it = ", i)
+		# println("id = ", myid(), " it = ", i)
+		
+		# println(length(merged))
 		# @async points[i] = calc(solver, merged[i], μ, σ, i)
+
+		println(idx, pid)
+		@async a[idx] = remotecall_fetch(()->feetness(merged[idx], μ, σ), pid)
 
 	end
 
-	println("len fitness = ", length(solver.fitness), " len pts = ", length(points))
+	println(a)
+
 	frontiers, indexes = nds(points)
+	# println(frontiers)
+	# println(indexes)
 	return frontiers, indexes
 end
 
@@ -107,7 +123,7 @@ function nds(points)
 end
 
 # risco = variância bosta
-function feetness(ind, μ, σ)
+@everywhere function feetness(ind, μ, σ)
     var, ret = 0.0, 0.0
     for i in 1:length(ind)
     	for j in i:length(ind)
@@ -270,6 +286,7 @@ pp = [random_solve(assets) for x in 1:pop_sz]
 
 solver = ga(cx, mr, pp)
 
+addprocs(100)
 @time for i in 1:it
 	# if i % 10 == 0
 	# 	println(i)
@@ -339,6 +356,8 @@ solver = ga(cx, mr, pp)
 
 	# do this
 	frontiers, indexes = every_fitness(solver, μ, σ)
+	# println(frontiers)
+	# println(indexes)
 	selection = tourney4nsga(solver, 2, frontiers, indexes)
 	arithmetic(solver, selection)
 	mut4nsga(solver)
