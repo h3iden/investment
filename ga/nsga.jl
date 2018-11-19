@@ -17,18 +17,27 @@ end
 
 # function every_fitness(solver::ga, μ, R)
 function every_fitness(solver::ga, μ, σ)
-	points = []
-	solver.fitness = []
+	# points = []
+	# solver.fitness = []
 	if solver.next_population == []
 		merged = solver.population
 	else
 		merged = [solver.population; solver.next_population]
 	end
-	for ind in merged
-		var, ret = feetness(ind, μ, σ)
-		push!(points, (var, ret))
-		push!(solver.fitness, (var, ret))
+
+	points = [(-1.0, -1.0) for x in 1:length(merged)]
+	solver.fitness = [(-1.0, -1.0) for x in 1:length(merged)]
+
+	# Threads.@threads for ind in merged
+	Threads.@threads for i in 1:length(merged)
+		# var, ret = feetness(ind, μ, σ)
+		var, ret = feetness(merged[i], μ, σ)
+		# push!(points, (var, ret))
+		# push!(solver.fitness, (var, ret))
+		points[i] = (var, ret)
+		solver.fitness[i] = (var, ret)
 	end
+
 	frontiers, indexes = nds(points)
 	return frontiers, indexes
 end
@@ -150,7 +159,7 @@ function filter_by_distance(fitness, indexes, n)
     	end
     end
 
-    println("pop needs ", n)
+    # println("pop needs ", n)
     # println(obj)
 
     dist = [0.0 for i in 1:length(indexes)]
@@ -189,7 +198,7 @@ function filter_population(solver::ga, frontiers, indexes, pop_sz)
 				return
 			end
 		else # number will exceed, include the n points with biggest distance
-			println("pop has ", length(solver.population), " frontier has ", length(is))
+			# println("pop has ", length(solver.population), " frontier has ", length(is))
 			selected = filter_by_distance(solver.fitness, is, pop_sz)
 			for s in selected
 				push!(solver.population, old_population[s])
@@ -222,9 +231,10 @@ pp = [random_solve(assets) for x in 1:pop_sz]
 
 solver = ga(cx, mr, pp)
 
-for i in 1:it
-	println(i)
-
+@time for i in 1:it
+	if i % 10 == 0
+		println(i)
+	end
 	# tested everything, one step at a time - fixed?
 
 	# frontiers, indexes = every_fitness(solver, μ, σ)
@@ -295,6 +305,7 @@ for i in 1:it
 
 end
 
+println("threads = ", Threads.nthreads())
 frontiers, indexes = every_fitness(solver, μ, σ)
 data(frontiers)
 
