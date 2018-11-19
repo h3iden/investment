@@ -77,7 +77,6 @@ end
 
 # esqueleto, implementar depois
 
-<<<<<<< HEAD
 # asset = scan(...)
 # returns = expected_return_for_every_day(asset)
 # sorted_returns = sort!(returns)
@@ -85,12 +84,3 @@ end
 # idx = calculate_count(99, total_count) # returns the count that will be used for VaR / CVaR. param should be 95, 99 or 99.9
 # var = sorted_returns[idx]
 # cvar = (1 / idx) * sum(sorted_returns[1:idx])
-=======
-asset = scan(...)
-returns = expected_return_for_every_day(asset)
-sorted_returns = sort!(returns)
-total_count = length(returns)
-idx = calculate_count(99, total_count) # returns the count that will be used for VaR / CVaR. param should be 95, 99 or 99.9
-# var = sorted_returns[idx]
-cvar = (1 / idx) * sum(sorted_returns[1:idx])
->>>>>>> 5a13b78a693f3d65f69628b8318b7bb2460506e9
