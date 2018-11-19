@@ -1,4 +1,4 @@
-using DelimitedFiles, StatsBase, RandomNumbers, Distributions, CSV, Statistics, DataFrames
+using DelimitedFiles, StatsBase, RandomNumbers, Distributions, CSV, Statistics, DataFrames, Distributed
 include("class.jl"), include("selection.jl"), include("crossover.jl"), include("mutation.jl"), include("markowicz.jl")
 
 # include("ga.jl") --> Benchmark
@@ -15,6 +15,12 @@ function params(solver::ga)
 	println("Total fitness: ", solver.total_fitness)
 end
 
+function calc(solver::ga, ind, μ, σ, i)
+    var, ret = feetness(ind, μ, σ)
+	solver.fitness[i] = (var, ret)
+	return (var, ret)	
+end
+
 # function every_fitness(solver::ga, μ, R)
 function every_fitness(solver::ga, μ, σ)
 	# points = []
@@ -29,15 +35,24 @@ function every_fitness(solver::ga, μ, σ)
 	solver.fitness = [(-1.0, -1.0) for x in 1:length(merged)]
 
 	# Threads.@threads for ind in merged
-	Threads.@threads for i in 1:length(merged)
+	@distributed for i in 1:length(merged)
+		# original
 		# var, ret = feetness(ind, μ, σ)
-		var, ret = feetness(merged[i], μ, σ)
 		# push!(points, (var, ret))
 		# push!(solver.fitness, (var, ret))
+		
+		# adaptado pra threads
+		var, ret = feetness(merged[i], μ, σ)
 		points[i] = (var, ret)
 		solver.fitness[i] = (var, ret)
+	
+		# adaptado pra async --nao ta funcionando
+		println("id = ", Threads.threadid(), " it = ", i)
+		# @async points[i] = calc(solver, merged[i], μ, σ, i)
+
 	end
 
+	println("len fitness = ", length(solver.fitness), " len pts = ", length(points))
 	frontiers, indexes = nds(points)
 	return frontiers, indexes
 end
@@ -256,9 +271,12 @@ pp = [random_solve(assets) for x in 1:pop_sz]
 solver = ga(cx, mr, pp)
 
 @time for i in 1:it
-	if i % 10 == 0
-		println(i)
-	end
+	# if i % 10 == 0
+	# 	println(i)
+	# end
+
+	println(i)
+
 	# tested everything, one step at a time - fixed?
 
 	# frontiers, indexes = every_fitness(solver, μ, σ)
