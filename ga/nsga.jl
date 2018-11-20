@@ -37,35 +37,37 @@ function every_fitness(solver::ga, μ, σ)
 
 	# https://stackoverflow.com/questions/37287020/how-and-when-to-use-async-and-sync-in-julia
 	# https://juliacomputing.com/docs/press_pdfs/linux-magazine.pdf
-
-	# Threads.@threads for ind in merged
+	# https://www.intel.com/content/dam/www/public/us/en/documents/presentation/julia-in-parallel-and-high-performance-computing.pdf
+	# @sync Threads.@threads for ind in merged
 
 	# a = cell(nworkers())
-	a = [-1 for x in 1:nworkers()]
-	# @sync for i in 1:length(merged)
-	@sync for (idx, pid) in enumerate(workers())
+	# a = [-1 for x in 1:nworkers()]
+
+	Threads.@threads for i in 1:length(merged)
+	# @sync for (idx, pid) in enumerate(workers())
 		# original
 		# var, ret = feetness(ind, μ, σ)
 		# push!(points, (var, ret))
 		# push!(solver.fitness, (var, ret))
-		
+		#println("afe ", Threads.threadid())
 		# adaptado pra threads
-		# var, ret = feetness(merged[i], μ, σ)
-		# points[i] = (var, ret)
-		# solver.fitness[i] = (var, ret)
-	
+		var, ret = feetness(merged[i], μ, σ)
+		points[i] = (var, ret)
+		solver.fitness[i] = (var, ret)
+		# println(Threads.threadid())
+		#Threads.threadid()
 		# adaptado pra async --nao ta funcionando
-		# println("id = ", myid(), " it = ", i)
+		# println("id = ", Threads.threadid(), " it = ", i)
 		
 		# println(length(merged))
-		# @async points[i] = calc(solver, merged[i], μ, σ, i)
+		#@async points[i] = calc(solver, merged[i], μ, σ, i)
 
-		println(idx, pid)
-		@async a[idx] = remotecall_fetch(()->feetness(merged[idx], μ, σ), pid)
+		# println(idx, pid)
+		# @async a[idx] = remotecall_fetch(()->feetness(merged[idx], μ, σ), pid)
 
 	end
 
-	println(a)
+	# println(a)
 
 	frontiers, indexes = nds(points)
 	# println(frontiers)
@@ -123,7 +125,7 @@ function nds(points)
 end
 
 # risco = variância bosta
-@everywhere function feetness(ind, μ, σ)
+function feetness(ind, μ, σ)
     var, ret = 0.0, 0.0
     for i in 1:length(ind)
     	for j in i:length(ind)
@@ -286,13 +288,13 @@ pp = [random_solve(assets) for x in 1:pop_sz]
 
 solver = ga(cx, mr, pp)
 
-addprocs(100)
+# addprocs(100)
 @time for i in 1:it
-	# if i % 10 == 0
-	# 	println(i)
-	# end
+	if i % 50 == 0
+		println(i)
+	end
 
-	println(i)
+	# println(i)
 
 	# tested everything, one step at a time - fixed?
 

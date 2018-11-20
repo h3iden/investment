@@ -40,7 +40,7 @@ end
 # benchmark assets
 function markowicz_params()
 	T, μ, desvio = [], [], []
-	file = "port1.txt"
+	file = "port5.txt"
 	lines = readlines(file)
 	n = tryparse(Int32, lines[1])
 
