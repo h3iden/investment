@@ -6,7 +6,7 @@ set key top right box 1
 set style data points
 
 # plot for [i=1:29] 'ef'.i title 'ef'.i
-plot 'ef1' title 'Frontier'
+plot 'ef1' title 'NSGA', 'portef5' title 'OR'
 
 set term pngcairo size 1200, 700 
 set output "portfolios2.png"
