@@ -3,24 +3,17 @@ include("class.jl"), include("selection.jl"), include("crossover.jl"), include("
 
 # include("ga.jl") --> Benchmark
 
-function params(solver::ga)
-	println("Cx: ", solver.cx)
-	println("Mr: ", solver.mr)
-	println("Elitist: ", solver.elitist)
-	println("Population + Fitness:")
-	for i in 1:length(solver.fitness)
-		println(solver.population[i], " : " , solver.fitness[i])
-	end
-	println("Fitness: ", solver.fitness)
-	println("Total fitness: ", solver.total_fitness)
-end
-
-function calc(solver::ga, ind, μ, σ, i)
-	# println("afe")
-    var, ret = feetness(ind, μ, σ)
-	solver.fitness[i] = (var, ret)
-	return (var, ret)	
-end
+# function params(solver::ga)
+# 	println("Cx: ", solver.cx)
+# 	println("Mr: ", solver.mr)
+# 	println("Elitist: ", solver.elitist)
+# 	println("Population + Fitness:")
+# 	for i in 1:length(solver.fitness)
+# 		println(solver.population[i], " : " , solver.fitness[i])
+# 	end
+# 	println("Fitness: ", solver.fitness)
+# 	println("Total fitness: ", solver.total_fitness)
+# end
 
 # function every_fitness(solver::ga, μ, R)
 function every_fitness(solver::ga, μ, σ)
@@ -125,40 +118,29 @@ function nds(points)
 end
 
 # risco = variância bosta
-function feetness(ind, μ, σ)
-    var, ret = 0.0, 0.0
-    for i in 1:length(ind)
-    	for j in i:length(ind)
-	    	var += σ[i][j] * ind[i] * ind[j]
-    	end
-    	# expected portfolio return
-	    ret += ind[i] * μ[i]
-    end
-    return var, ret
-end
-
-function calculate_count(β, tc)
-	return ceil((1 - β/100) * tc)
-end
-
-function cvar(sorted_returns, β)
-    total_count = length(sorted_returns)
-    i = calculate_count(β, tc)
-    return (1 / i) * sum(sorted_returns[1:i])
-end
+# function feetness(ind, μ, σ)
+#     var, ret = 0.0, 0.0
+#     for i in 1:length(ind)
+#     	for j in i:length(ind)
+# 	    	var += σ[i][j] * ind[i] * ind[j]
+#     	end
+#     	# expected portfolio return
+# 	    ret += ind[i] * μ[i]
+#     end
+#     return var, ret
+# end
 
 # risco = cvar
-# function feetness(ind, assets_sorted_returns, μ)
-# 	β = 99
-# 	risk, ret = 0.0, 0.0
-# 	for i in 1:length(ind)
-# 		if ind[i] > 0
-# 			ret += ind[i] * μ[i]
-# 			risk += cvar(assets_sorted_returns[i], β)
-# 		end
-# 	end
-#  	return risk, ret
-# end
+function feetness(ind, assets_sorted_returns, μ)
+	risk, ret = 0.0, 0.0
+	for i in 1:length(ind)
+		if ind[i] > 0
+			ret += ind[i] * μ[i]
+			risk += ind[i] * cvar[i]
+		end
+	end
+ 	return risk, ret
+end
 
 function random_solve(n)
 	rng = MersenneTwisters.MT19937()
@@ -175,17 +157,6 @@ end
 function reset_fitness(solver::ga)
 	solver.fitness = []
 	solver.total_fitness = 0
-end
-
-function gambiarra(ind, μ, σ)
-    v, r = 0.0, 0.0
-    for i in 1:length(ind)
-    	for j in i:length(ind)
-	    	v += (σ[i][j] * ind[i] * ind[j])
-    	end
-    	r += ind[i] * μ[i]
-    end
-    return v, r
 end
 
 function ef(v, r)
@@ -280,86 +251,21 @@ end
 
 file = "params.in"
 it, pop_sz, cx, mr = scan(file)
-# T, μ, R = markowicz_params()
-T, μ, σ = markowicz_params()
-assets = length(T)
 
-pp = [random_solve(assets) for x in 1:pop_sz]
+# markowicz
+# T, μ, σ = markowicz_params()
+# assets = length(T)
+# pp = [random_solve(assets) for x in 1:pop_sz]
+# solver = ga(cx, mr, pp)
 
-solver = ga(cx, mr, pp)
 
-# addprocs(100)
+
 @time for i in 1:it
 	if i % 50 == 0
 		println(i)
 	end
 
-	# println(i)
-
-	# tested everything, one step at a time - fixed?
-
-	# frontiers, indexes = every_fitness(solver, μ, σ)
-	# for i in 1:length(solver.population)
-	# 	println(solver.fitness[i])
-	# end
-	# println(indexes)
-	# selection = tourney4nsga(solver, 2, frontiers, indexes)
-	# println(selection)
-	
-	# arithmetic(solver, selection)
-	# frontiers, indexes = every_fitness(solver, μ, σ)
-	# for i in 1:length(solver.population)
-	# 	println(solver.fitness[i])
-	# end
-	# println(indexes)
-	# # REIMPLANTAR ELITISMO E VER NO QUE DÁ!!
-
-	# mut4nsga(solver)
-	# frontiers, indexes = every_fitness(solver, μ, σ)
-	# for i in 1:length(solver.population)
-	# 	println(solver.fitness[i])
-	# end
-	# println(length(solver.fitness))
-	# println(indexes)
-
-	# filter_population(solver, frontiers, indexes, pop_sz)
-	# frontiers, indexes = every_fitness(solver, μ, σ)
-	# for i in 1:length(solver.population)
-	# 	println(solver.fitness[i])
-	# end
-	# println(length(solver.fitness))
-	# println(indexes)
-
-	# for ind in solver.population
-	# 	println(ind)
-	# end
-	# println(length(solver.population))
-
-	# frontiers, indexes = every_fitness(solver, μ, σ)
-	# println(length(solver.fitness))
-	# println(length(solver.population))
-	# selection = tourney4nsga(solver, 2, frontiers, indexes)
-	# println(length(solver.fitness))
-	# println(length(solver.population))
-	# arithmetic(solver, selection)
-	# println(length(solver.fitness))
-	# println(length(solver.population))
-	# mut4nsga(solver)
-	# println(length(solver.fitness))
-	# println(length(solver.population))
-	# frontiers, indexes = every_fitness(solver, μ, σ)
-	# println(length(solver.fitness))
-	# println(length(solver.population))
-	# filter_population(solver, frontiers, indexes, pop_sz)
-
-	# frontiers, indexes = every_fitness(solver, μ, σ)
-	# println(length(solver.fitness))
-	# # println(length(solver.population))
-
-	# do this
 	frontiers, indexes = every_fitness(solver, μ, σ)
-	# println(frontiers)
-	# println(indexes)
 	selection = tourney4nsga(solver, 2, frontiers, indexes)
 	arithmetic(solver, selection)
 	mut4nsga(solver)
@@ -371,24 +277,3 @@ end
 println("threads = ", Threads.nthreads())
 frontiers, indexes = every_fitness(solver, μ, σ)
 data(frontiers)
-
-# vars, rets = [], []
-# for ind in solver.population
-# 	v, r = gambiarra(ind, μ, σ)
-# 	push!(vars, v)
-# 	push!(rets, r)
-# end
-
-# marks = ef(vars, rets)
-# for i in 1:length(marks)
-# 	if marks[i] == 0
-# 		println(rets[i], " ", vars[i])
-# 	end
-# end
-
-# println(solver.elitist)
-
-# println("=======")
-# for ind in solver.population
-# 	feetness(ind, μ, σ)
-# end

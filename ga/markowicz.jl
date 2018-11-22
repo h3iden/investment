@@ -59,29 +59,3 @@ end
 # 	end
 # 	return T, μ, σ
 # end
-
-function expected_return_for_every_day(asset)
-	returns = [0 for i = 1:length(asset)]
-	returns[1] = 0 # undefined value
-	for i in 2:length(asset)
-		returns[i] = asset[i] - asset[i-1] / asset[i-1]
-	end
-	return returns[2:end]
-end
-
-function calculate_count(β, total)
-	return ceil((1 - β/100) * total)
-end
-
-# esqueleto, implementar depois
-
-assets, samples_sizes = markowicz_params()
-cvar = 0.0
-
-for i in 1:length(assets)
-	returns = expected_return_for_every_day(assets[i])
-	sorted_returns = sort!(returns)
-	total_count = samples_sizes[i]
-	idx = calculate_count(99, total_count) # returns the count that will be used for VaR / CVaR. param should be 95, 99 or 99.9
-	# var = sorted_returns[idx]
-	cvar += (1 / idx) * sum(sorted_returns[1:idx])
