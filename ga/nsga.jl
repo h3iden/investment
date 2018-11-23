@@ -1,5 +1,18 @@
-using DelimitedFiles, StatsBase, RandomNumbers, Distributions, CSV, Statistics, DataFrames, Distributed
-include("class.jl"), include("selection.jl"), include("crossover.jl"), include("mutation.jl"), include("markowicz.jl")
+using DelimitedFiles
+using StatsBase
+using RandomNumbers
+using Distributions
+using CSV
+using Statistics
+using DataFrames
+using Distributed
+
+include("cvar.jl")
+include("class.jl")
+include("selection.jl")
+include("crossover.jl")
+include("mutation.jl")
+include("markowicz.jl")
 
 # include("ga.jl") --> Benchmark
 
@@ -15,8 +28,7 @@ include("class.jl"), include("selection.jl"), include("crossover.jl"), include("
 # 	println("Total fitness: ", solver.total_fitness)
 # end
 
-# function every_fitness(solver::ga, μ, R)
-function every_fitness(solver::ga, μ, σ)
+function every_fitness(solver::ga, μ, risk)
 	# points = []
 	# solver.fitness = []
 	if solver.next_population == []
@@ -28,35 +40,16 @@ function every_fitness(solver::ga, μ, σ)
 	points = [(-1.0, -1.0) for x in 1:length(merged)]
 	solver.fitness = [(-1.0, -1.0) for x in 1:length(merged)]
 
-	# https://stackoverflow.com/questions/37287020/how-and-when-to-use-async-and-sync-in-julia
-	# https://juliacomputing.com/docs/press_pdfs/linux-magazine.pdf
-	# https://www.intel.com/content/dam/www/public/us/en/documents/presentation/julia-in-parallel-and-high-performance-computing.pdf
-	# @sync Threads.@threads for ind in merged
-
-	# a = cell(nworkers())
-	# a = [-1 for x in 1:nworkers()]
-
 	Threads.@threads for i in 1:length(merged)
-	# @sync for (idx, pid) in enumerate(workers())
 		# original
-		# var, ret = feetness(ind, μ, σ)
+		# var, ret = feetness(ind, μ, risk)
 		# push!(points, (var, ret))
 		# push!(solver.fitness, (var, ret))
-		#println("afe ", Threads.threadid())
+
 		# adaptado pra threads
-		var, ret = feetness(merged[i], μ, σ)
+		var, ret = feetness(merged[i], μ, risk)
 		points[i] = (var, ret)
 		solver.fitness[i] = (var, ret)
-		# println(Threads.threadid())
-		#Threads.threadid()
-		# adaptado pra async --nao ta funcionando
-		# println("id = ", Threads.threadid(), " it = ", i)
-		
-		# println(length(merged))
-		#@async points[i] = calc(solver, merged[i], μ, σ, i)
-
-		# println(idx, pid)
-		# @async a[idx] = remotecall_fetch(()->feetness(merged[idx], μ, σ), pid)
 
 	end
 
@@ -118,29 +111,29 @@ function nds(points)
 end
 
 # risco = variância bosta
-# function feetness(ind, μ, σ)
-#     var, ret = 0.0, 0.0
-#     for i in 1:length(ind)
-#     	for j in i:length(ind)
-# 	    	var += σ[i][j] * ind[i] * ind[j]
-#     	end
-#     	# expected portfolio return
-# 	    ret += ind[i] * μ[i]
-#     end
-#     return var, ret
-# end
+function feetness(ind, μ, σ)
+    var, ret = 0.0, 0.0
+    for i in 1:length(ind)
+    	for j in i:length(ind)
+	    	var += σ[i][j] * ind[i] * ind[j]
+    	end
+    	# expected portfolio return
+	    ret += ind[i] * μ[i]
+    end
+    return var, ret
+end
 
 # risco = cvar
-function feetness(ind, assets_sorted_returns, μ)
-	risk, ret = 0.0, 0.0
-	for i in 1:length(ind)
-		if ind[i] > 0
-			ret += ind[i] * μ[i]
-			risk += ind[i] * cvar[i]
-		end
-	end
- 	return risk, ret
-end
+# function feetness(ind, μ, cvar)
+# 	risk, ret = 0.0, 0.0
+# 	for i in 1:length(ind)
+# 		if ind[i] > 0
+# 			ret += ind[i] * μ[i]
+# 			risk += ind[i] * cvar[i]
+# 		end
+# 	end
+#  	return risk, ret
+# end
 
 function random_solve(n)
 	rng = MersenneTwisters.MT19937()
@@ -151,7 +144,7 @@ end
 
 function scan(file)
 	lines = readlines(file)
-	return tryparse(Int32, lines[1]), tryparse(Int32, lines[2]), tryparse(Float64, lines[3]), tryparse(Float64, lines[4])
+	return tryparse(Int32, lines[1]), tryparse(Int32, lines[2]), tryparse(Float32, lines[3]), tryparse(Float32, lines[4]), tryparse(Float32, lines[4])
 end
 
 function reset_fitness(solver::ga)
@@ -250,15 +243,18 @@ function data(frontiers)
 end
 
 file = "params.in"
-it, pop_sz, cx, mr = scan(file)
+it, pop_sz, β, cx, mr = scan(file)
 
 # markowicz
-# T, μ, σ = markowicz_params()
-# assets = length(T)
-# pp = [random_solve(assets) for x in 1:pop_sz]
+T, μ, σ = markowicz_params()
+assets = length(T)
+pp = [random_solve(assets) for x in 1:pop_sz]
+solver = ga(cx, mr, pp)
+
+# cvar
+# assets, μ, cvar = params(β)
+# pp = [random_solve(length(assets)) for x in 1:pop_sz]
 # solver = ga(cx, mr, pp)
-
-
 
 @time for i in 1:it
 	if i % 50 == 0
@@ -266,14 +262,22 @@ it, pop_sz, cx, mr = scan(file)
 	end
 
 	frontiers, indexes = every_fitness(solver, μ, σ)
+	# frontiers, indexes = every_fitness(solver, μ, cvar)
+
 	selection = tourney4nsga(solver, 2, frontiers, indexes)
+	
 	arithmetic(solver, selection)
+	
 	mut4nsga(solver)
+	
 	frontiers, indexes = every_fitness(solver, μ, σ)
+	# frontiers, indexes = every_fitness(solver, μ, cvar)
+	
 	filter_population(solver, frontiers, indexes, pop_sz)
 
 end
 
 println("threads = ", Threads.nthreads())
 frontiers, indexes = every_fitness(solver, μ, σ)
+# frontiers, indexes = every_fitness(solver, μ, cvar)
 data(frontiers)

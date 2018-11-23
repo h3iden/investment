@@ -17,7 +17,7 @@ function scan_assets()
 	return assets, T
 end
 
-function expected_return(asset, T)
+function μT(asset, T)
 	rj = 0.0
 	for i in 2:T
 		rj += (asset[i] - asset[i-1])
@@ -26,7 +26,7 @@ function expected_return(asset, T)
 	return μj
 end
 
-function μ(asset)
+function every_μ(asset)
 	returns = [0.0 for i = 1:length(asset)]
 	returns[1] = 0.0 # undefined value
 	for i in 2:length(asset)
@@ -39,27 +39,27 @@ function calculate_count(β, total)
 	return ceil(Int, (1 - β/100) * total)
 end
 
-function cvar(assets, samples_sizes)
-	risk = 0.0
+function calculate_cvar(β, assets, samples_sizes)
+	risk = []
 	for i in 1:length(assets)
-		returns = μ(assets[i])
+		returns = every_μ(assets[i])
 		sorted_returns = sort!(returns)
 		total_count = samples_sizes[i]
-		idx = calculate_count(99, total_count) # returns the count that will be used for VaR / CVaR. param should be 95, 99 or 99.9
+		idx = calculate_count(β, total_count) # returns the count that will be used for VaR / CVaR. param should be 95, 99 or 99.9
 		# risk += sorted_returns[idx] # VaR
-		risk += (1 / idx) * sum(sorted_returns[1:idx]) # CVaR
+		push!(risk, (1 / idx) * sum(sorted_returns[1:idx])) # CVaR
 	end
 	return risk
 end
 
-function params()
+function params(β)
 	assets, samples_sizes = scan_assets()
-	risk = cvar(assets, samples_sizes)
+	risk = calculate_cvar(β, assets, samples_sizes)
     μ = []
     for i in 1:length(assets)
-    	push!(μ, expected_return(assets[i], samples_sizes[i]))
+    	push!(μ, μT(assets[i], samples_sizes[i]))
     end
-    return assets,  samples_sizes, μ
+    return assets, μ, risk
 end
 
 # precisa calcular cada cvar (apenas 1 vez) e multiplicar pelo investimento pra ver o total de possivel perda
