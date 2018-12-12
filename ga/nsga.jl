@@ -110,30 +110,30 @@ function nds(points)
     return frontiers, is
 end
 
-# risco = variância bosta
-function feetness(ind, μ, σ)
-    var, ret = 0.0, 0.0
-    for i in 1:length(ind)
-    	for j in i:length(ind)
-	    	var += σ[i][j] * ind[i] * ind[j]
-    	end
-    	# expected portfolio return
-	    ret += ind[i] * μ[i]
-    end
-    return var, ret
-end
+# risco = variância
+# function feetness(ind, μ, σ)
+#     var, ret = 0.0, 0.0
+#     for i in 1:length(ind)
+#     	for j in i:length(ind)
+# 	    	var += σ[i][j] * ind[i] * ind[j]
+#     	end
+#     	# expected portfolio return
+# 	    ret += ind[i] * μ[i]
+#     end
+#     return var, ret
+# end
 
 # risco = cvar
-# function feetness(ind, μ, cvar)
-# 	risk, ret = 0.0, 0.0
-# 	for i in 1:length(ind)
-# 		if ind[i] > 0
-# 			ret += ind[i] * μ[i]
-# 			risk += ind[i] * cvar[i]
-# 		end
-# 	end
-#  	return risk, ret
-# end
+function feetness(ind, μ, cvar)
+	risk, ret = 0.0, 0.0
+	for i in 1:length(ind)
+		if ind[i] > 0
+			ret += ind[i] * μ[i]
+			risk += ind[i] * cvar[i]
+		end
+	end
+ 	return risk, ret
+end
 
 function random_solve(n)
 	rng = MersenneTwisters.MT19937()
@@ -245,16 +245,17 @@ end
 file = "params.in"
 it, pop_sz, β, cx, mr = scan(file)
 
+
 # markowicz
-T, μ, σ = markowicz_params()
-assets = length(T)
-pp = [random_solve(assets) for x in 1:pop_sz]
-solver = ga(cx, mr, pp)
+# T, μ, σ = markowicz_params()
+# assets = length(T)
+# pp = [random_solve(assets) for x in 1:pop_sz]
+# solver = ga(cx, mr, pp)
 
 # cvar
-# assets, μ, cvar = params(β)
-# pp = [random_solve(length(assets)) for x in 1:pop_sz]
-# solver = ga(cx, mr, pp)
+assets, μ, σ = params(β)
+pp = [random_solve(length(assets)) for x in 1:pop_sz]
+solver = ga(cx, mr, pp)
 
 @time for i in 1:it
 	if i % 50 == 0
@@ -262,7 +263,6 @@ solver = ga(cx, mr, pp)
 	end
 
 	frontiers, indexes = every_fitness(solver, μ, σ)
-	# frontiers, indexes = every_fitness(solver, μ, cvar)
 
 	selection = tourney4nsga(solver, 2, frontiers, indexes)
 	
@@ -271,7 +271,6 @@ solver = ga(cx, mr, pp)
 	mut4nsga(solver)
 	
 	frontiers, indexes = every_fitness(solver, μ, σ)
-	# frontiers, indexes = every_fitness(solver, μ, cvar)
 	
 	filter_population(solver, frontiers, indexes, pop_sz)
 
@@ -279,5 +278,4 @@ end
 
 println("threads = ", Threads.nthreads())
 frontiers, indexes = every_fitness(solver, μ, σ)
-# frontiers, indexes = every_fitness(solver, μ, cvar)
 data(frontiers)
