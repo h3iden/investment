@@ -1,6 +1,6 @@
 set encoding utf8
-set xlabel "Retorno"
-set ylabel "Risco"
+set xlabel "Risco"
+set ylabel "Retorno"
 
 set key top right box 1
 set style data points

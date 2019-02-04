@@ -137,14 +137,23 @@ end
 
 function random_solve(n)
 	rng = MersenneTwisters.MT19937()
-	x = rand(n)
+
+	# x = [0.0 for i in 1:n]
+	# idx = sample(1:n, cardinality)
+	# for i in idx
+	# 	x[i] = rand(rng)
+	# end
+	# x /= sum(x)
+	# return x
+
+	x = rand(rng, n)
 	x /= sum(x)
 	return x
 end
 
 function scan(file)
 	lines = readlines(file)
-	return tryparse(Int32, lines[1]), tryparse(Int32, lines[2]), tryparse(Float32, lines[3]), tryparse(Float32, lines[4]), tryparse(Float32, lines[4])
+	return tryparse(Int32, lines[1]), tryparse(Int32, lines[2]), tryparse(Float32, lines[3]), tryparse(Int32, lines[4]), tryparse(Float32, lines[5]), tryparse(Float32, lines[6])
 end
 
 function reset_fitness(solver::ga)
@@ -235,7 +244,7 @@ function data(frontiers)
 		file = "test/ef" * string(cont)
 		open(file, "w") do f
 			for point in points
-				write(f, string(point[1]) * " " * string(point[2]) * "\n")
+				write(f, string(abs(point[1])) * " " * string(point[2]) * "\n")
 			end
 		end
 		cont += 1
@@ -243,7 +252,7 @@ function data(frontiers)
 end
 
 file = "params.in"
-it, pop_sz, β, cx, mr = scan(file)
+it, pop_sz, β, cardinality, cx, mr = scan(file)
 
 
 # markowicz
@@ -275,6 +284,10 @@ solver = ga(cx, mr, pp)
 	filter_population(solver, frontiers, indexes, pop_sz)
 
 end
+
+# for ind in solver.population
+# 	println(ind, " ", sum(ind))
+# end
 
 println("threads = ", Threads.nthreads())
 frontiers, indexes = every_fitness(solver, μ, σ)

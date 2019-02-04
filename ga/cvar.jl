@@ -47,7 +47,6 @@ function calculate_cvar(β, assets, samples_sizes)
 		total_count = samples_sizes[i]
 		idx = calculate_count(β, total_count) # returns the count that will be used for VaR / CVaR. param should be 95, 99 or 99.9
 		# risk += sorted_returns[idx] # VaR
-		println(idx, " ", (1 / idx), " ", sum(sorted_returns[1:idx]))
 		push!(risk, (1 / idx) * sum(sorted_returns[1:idx])) # CVaR
 	end
 	return risk
@@ -60,9 +59,6 @@ function params(β)
     for i in 1:length(assets)
     	push!(μ, μT(assets[i], samples_sizes[i]))
     end
-    println(risk)
-    println(μ)
-    exit(0)
     return assets, μ, risk
 end
 
