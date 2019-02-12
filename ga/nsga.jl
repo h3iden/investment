@@ -238,17 +238,15 @@ function filter_population(solver::ga, frontiers, indexes, pop_sz)
 	end
 end
 
-function data(frontiers)
-	cont = 1
-	for points in frontiers
-		file = "test/ef" * string(cont)
-		open(file, "w") do f
-			for point in points
-				write(f, string(abs(point[1])) * " " * string(point[2]) * "\n")
-			end
+function data(frontier)
+	file = "pontos"
+	open(file, "w") do f
+		for point in frontier
+			write(f, string(point[1]) * " " * string(point[2]) * "\n")
 		end
-		cont += 1
 	end
+	run(`gnuplot plot.gnu`)
+	run(`display portfolios.png`)
 end
 
 file = "params.in"
@@ -281,6 +279,8 @@ solver = ga(cx, mr, pp)
 	
 	frontiers, indexes = every_fitness(solver, μ, σ)
 	
+	println(frontiers[1])
+
 	filter_population(solver, frontiers, indexes, pop_sz)
 
 end
@@ -291,4 +291,4 @@ end
 
 println("threads = ", Threads.nthreads())
 frontiers, indexes = every_fitness(solver, μ, σ)
-data(frontiers)
+data(frontiers[1])
