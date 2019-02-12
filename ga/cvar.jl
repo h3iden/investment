@@ -4,7 +4,7 @@ function scan_assets()
 	T, assets = [], []
 	dir = "./assets/"
 	files = readdir(dir)
-	println(files)
+	# println(files)
 
 	for i in 1:length(files)
 		df = CSV.read(dir * files[i])
