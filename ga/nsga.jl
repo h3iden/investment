@@ -245,8 +245,8 @@ function data(frontier)
 			write(f, string(point[1]) * " " * string(point[2]) * "\n")
 		end
 	end
-	run(`gnuplot plot.gnu`)
-	run(`display portfolios.png`)
+	# run(`gnuplot plot.gnu`)
+	# run(`display portfolios.png`)
 end
 
 file = "params.in"
@@ -278,8 +278,6 @@ solver = ga(cx, mr, pp)
 	mut4nsga(solver)
 	
 	frontiers, indexes = every_fitness(solver, μ, σ)
-	
-	println(frontiers[1])
 
 	filter_population(solver, frontiers, indexes, pop_sz)
 
