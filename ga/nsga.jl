@@ -245,7 +245,7 @@ function data(frontier)
 			write(f, string(point[1]) * " " * string(point[2]) * "\n")
 		end
 	end
-	# run(`gnuplot plot.gnu`)
+	run(`gnuplot plot.gnu`)
 	# run(`display portfolios.png`)
 end
 
