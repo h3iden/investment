@@ -240,12 +240,12 @@ end
 
 function data(frontier)
 	file = "pontos"
-	open(file, "w") do f
+	open(file, "a") do f
 		for point in frontier
 			write(f, string(point[1]) * " " * string(point[2]) * "\n")
 		end
 	end
-	run(`gnuplot plot.gnu`)
+	# run(`gnuplot plot.gnu`)
 	# run(`display portfolios.png`)
 end
 
